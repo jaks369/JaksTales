@@ -1,0 +1,41 @@
+{
+  "name": "jaks369-tales",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "react-scripts start",
+    "build": "react-scripts build",
+    "start": "serve -s build -l 3000",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
+    "lucide-react": "^0.453.0"
+  },
+  "devDependencies": {
+    "react-scripts": "5.0.1",
+    "serve": "^14.2.3",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^4.9.5"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

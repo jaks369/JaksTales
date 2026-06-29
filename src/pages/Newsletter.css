@@ -1,0 +1,170 @@
+.newsletter {
+  min-height: 100vh;
+}
+
+.newsletter-header {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border-bottom: 2px solid var(--accent);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.newsletter-header h1 {
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.newsletter-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.newsletter-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin: 3rem 0;
+}
+
+.newsletter-form-section h2 {
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.newsletter-form-section p {
+  color: var(--text-primary);
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+.newsletter-form {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.submit-btn {
+  width: 100%;
+  background: var(--accent);
+  color: var(--bg-primary);
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.submit-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.success-message {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 1rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.privacy-note {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.newsletter-benefits h2 {
+  color: var(--accent);
+  margin-bottom: 2rem;
+}
+
+.benefits-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.benefit {
+  background: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  border-top: 3px solid var(--accent);
+}
+
+.benefit-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.benefit h3 {
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.benefit p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .newsletter-header {
+    padding: 2rem 1rem;
+  }
+
+  .newsletter-header h1 {
+    font-size: 2rem;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .newsletter-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin: 1.5rem 0;
+  }
+
+  .newsletter-form {
+    padding: 1.5rem;
+  }
+
+  .benefits-list {
+    grid-template-columns: 1fr;
+  }
+}

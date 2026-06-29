@@ -1,0 +1,89 @@
+.categories {
+  min-height: 100vh;
+}
+
+.categories-header {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border-bottom: 2px solid var(--accent);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.categories-header h1 {
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.categories-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.categories-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+
+.category-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.category-item:hover {
+  border-color: var(--accent);
+  transform: translateX(4px);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.1);
+}
+
+.category-info h3 {
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.category-info p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.arrow {
+  color: var(--accent);
+  font-size: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.category-item:hover .arrow {
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .categories-header {
+    padding: 2rem 1rem;
+  }
+
+  .categories-header h1 {
+    font-size: 2rem;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .categories-list {
+    grid-template-columns: 1fr;
+  }
+}
