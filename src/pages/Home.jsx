@@ -1,11 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { posts, categories } from '../data/posts.jsx';
-import PostCard from '../components/PostCard';
+import { fetchPosts, fetchCategories } from '../lib/sanity.jsx';
+import PostCard from '../components/PostCard.jsx';
 import './Home.css';
 
 export default function Home() {
-  const featuredPosts = posts.filter(p => p.featured).slice(0, 3);
+  const [posts, setPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        setLoading(true);
+        const [postsData, categoriesData] = await Promise.all([
+          fetchPosts(),
+          fetchCategories()
+        ]);
+        setPosts(postsData);
+        setCategories(categoriesData);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading home content:', err);
+        setError('Failed to load content. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadContent();
+  }, []);
+
+  const featuredPosts = posts.slice(0, 3);
 
   return (
     <div className="home">
@@ -22,11 +49,19 @@ export default function Home() {
       <section className="featured-section">
         <div className="container">
           <h2>Featured Articles</h2>
-          <div className="posts-grid">
-            {featuredPosts.map(post => (
-              <PostCard key={post.id} post={post} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="loading">Loading featured articles...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : featuredPosts.length > 0 ? (
+            <div className="posts-grid">
+              {featuredPosts.map(post => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="no-posts">No featured articles available yet.</div>
+          )}
         </div>
       </section>
 
@@ -34,17 +69,24 @@ export default function Home() {
       <section className="categories-section">
         <div className="container">
           <h2>Explore Topics</h2>
-          <div className="categories-grid">
-            {categories.map(category => {
-              const count = posts.filter(p => p.category === category).length;
-              return (
-                <Link key={category} to={`/blog?category=${category}`} className="category-card">
-                  <h3>{category}</h3>
-                  <p>{count} article{count !== 1 ? 's' : ''}</p>
+          {loading ? (
+            <div className="loading">Loading categories...</div>
+          ) : categories.length > 0 ? (
+            <div className="categories-grid">
+              {categories.map(category => (
+                <Link 
+                  key={category.id} 
+                  to={`/blog?category=${category.slug}`} 
+                  className="category-card"
+                >
+                  <h3>{category.name}</h3>
+                  <p>{category.postCount} article{category.postCount !== 1 ? 's' : ''}</p>
                 </Link>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-categories">No categories available yet.</div>
+          )}
         </div>
       </section>
 

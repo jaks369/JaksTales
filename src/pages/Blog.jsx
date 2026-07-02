@@ -1,15 +1,41 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { posts, categories } from '../data/posts.jsx';
-import PostCard from '../components/PostCard';
+import { fetchPosts, fetchCategories } from '../lib/sanity.jsx';
+import PostCard from '../components/PostCard.jsx';
 import './Blog.css';
 
 export default function Blog() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
+  const [posts, setPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const selectedCategory = searchParams.get('category') || 'All';
 
-  const filteredPosts = useMemo(() => {
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        setLoading(true);
+        const [postsData, categoriesData] = await Promise.all([
+          fetchPosts(),
+          fetchCategories()
+        ]);
+        setPosts(postsData);
+        setCategories(categoriesData);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading blog content:', err);
+        setError('Failed to load blog posts. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadContent();
+  }, []);
+
+  const filteredPosts = (() => {
     let result = posts;
 
     if (selectedCategory !== 'All') {
@@ -19,19 +45,18 @@ export default function Blog() {
     if (search) {
       result = result.filter(p =>
         p.title.toLowerCase().includes(search.toLowerCase()) ||
-        p.excerpt.toLowerCase().includes(search.toLowerCase()) ||
-        p.content.toLowerCase().includes(search.toLowerCase())
+        p.excerpt.toLowerCase().includes(search.toLowerCase())
       );
     }
 
     return result;
-  }, [selectedCategory, search]);
+  })();
 
-  const handleCategoryClick = (category) => {
-    if (category === 'All') {
+  const handleCategoryClick = (categorySlug) => {
+    if (categorySlug === 'All') {
       setSearchParams({});
     } else {
-      setSearchParams({ category });
+      setSearchParams({ category: categorySlug });
     }
   };
 
@@ -57,27 +82,33 @@ export default function Blog() {
         </div>
 
         {/* Category Tabs */}
-        <div className="category-tabs">
-          <button
-            className={`tab ${selectedCategory === 'All' ? 'active' : ''}`}
-            onClick={() => handleCategoryClick('All')}
-          >
-            All
-          </button>
-          {categories.map(category => (
+        {!loading && (
+          <div className="category-tabs">
             <button
-              key={category}
-              className={`tab ${selectedCategory === category ? 'active' : ''}`}
-              onClick={() => handleCategoryClick(category)}
+              className={`tab ${selectedCategory === 'All' ? 'active' : ''}`}
+              onClick={() => handleCategoryClick('All')}
             >
-              {category}
+              All
             </button>
-          ))}
-        </div>
+            {categories.map(category => (
+              <button
+                key={category.id}
+                className={`tab ${selectedCategory === category.slug ? 'active' : ''}`}
+                onClick={() => handleCategoryClick(category.slug)}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Posts Grid */}
         <div className="posts-grid">
-          {filteredPosts.length > 0 ? (
+          {loading ? (
+            <div className="loading">Loading articles...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : filteredPosts.length > 0 ? (
             filteredPosts.map(post => (
               <PostCard key={post.id} post={post} />
             ))

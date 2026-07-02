@@ -9,16 +9,18 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@sanity/client": "^7.23.0",
+    "@sanity/image-url": "^2.1.1",
+    "lucide-react": "^0.453.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0",
-    "lucide-react": "^0.453.0"
+    "react-router-dom": "^6.26.0"
   },
   "devDependencies": {
-    "react-scripts": "5.0.1",
-    "serve": "^14.2.3",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "react-scripts": "5.0.1",
+    "serve": "^14.2.3",
     "typescript": "^4.9.5"
   },
   "eslintConfig": {

@@ -1,31 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { posts } from '../data/posts.jsx';
-import PostCard from '../components/PostCard';
+import { fetchPostBySlug, fetchPosts } from '../lib/sanity.jsx';
+import PostCard from '../components/PostCard.jsx';
 import './BlogPost.css';
 
 export default function BlogPost() {
-  const { id } = useParams();
-  const post = posts.find(p => p.id === id);
+  const { slug } = useParams();
+  const [post, setPost] = useState(null);
+  const [relatedPosts, setRelatedPosts] = useState([]);
   const [comments, setComments] = useState([]);
   const [formData, setFormData] = useState({ name: '', email: '', comment: '' });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!post) {
-    return (
-      <div className="blog-post">
-        <div className="container">
-          <div className="not-found">
-            <h1>Post not found</h1>
-            <Link to="/blog">Back to Blog</Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const loadPost = async () => {
+      try {
+        setLoading(true);
+        const postData = await fetchPostBySlug(slug);
+        
+        if (!postData) {
+          setError('Post not found');
+          setPost(null);
+          return;
+        }
 
-  const relatedPosts = posts
-    .filter(p => p.category === post.category && p.id !== post.id)
-    .slice(0, 3);
+        setPost(postData);
+        setError(null);
+
+        // Fetch related posts from same category
+        const allPosts = await fetchPosts();
+        const related = allPosts
+          .filter(p => p.category === postData.category && p.id !== postData.id)
+          .slice(0, 3);
+        setRelatedPosts(related);
+      } catch (err) {
+        console.error('Error loading post:', err);
+        setError('Failed to load post. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPost();
+  }, [slug]);
 
   const handleSubmitComment = (e) => {
     e.preventDefault();
@@ -34,6 +52,29 @@ export default function BlogPost() {
       setFormData({ name: '', email: '', comment: '' });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="blog-post">
+        <div className="container">
+          <div className="loading">Loading article...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !post) {
+    return (
+      <div className="blog-post">
+        <div className="container">
+          <div className="not-found">
+            <h1>{error || 'Post not found'}</h1>
+            <Link to="/blog">Back to Blog</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="blog-post">
@@ -44,13 +85,19 @@ export default function BlogPost() {
             <h1>{post.title}</h1>
             <div className="post-meta">
               <span className="post-category">{post.category}</span>
-              <span className="post-date">{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-              <span className="post-read-time">{post.readTime} min read</span>
+              <span className="post-date">
+                {new Date(post.publishedAt).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </span>
+              {post.readTime && <span className="post-read-time">{post.readTime} min read</span>}
             </div>
           </div>
 
           <div className="post-body">
-            {post.content.split('\n\n').map((paragraph, idx) => (
+            {post.content && post.content.split('\n\n').map((paragraph, idx) => (
               <p key={idx}>{paragraph}</p>
             ))}
           </div>
@@ -103,7 +150,7 @@ export default function BlogPost() {
                     <strong>{comment.name}</strong>
                     <span className="comment-date">{comment.date}</span>
                   </div>
-                  <p>{comment.text}</p>
+                  <p>{comment.comment}</p>
                 </div>
               ))
             )}
