@@ -53,6 +53,35 @@ export default function BlogPost() {
     }
   };
 
+  // Helper function to render content safely
+  const renderContent = (content) => {
+    if (!content) return null;
+
+    // If content is a string, split by paragraphs
+    if (typeof content === 'string') {
+      return content.split('\n\n').map((paragraph, idx) => (
+        <p key={idx}>{paragraph}</p>
+      ));
+    }
+
+    // If content is an array (Portable Text), render as text
+    if (Array.isArray(content)) {
+      return content.map((block, idx) => {
+        if (block._type === 'block') {
+          return (
+            <p key={idx}>
+              {block.children?.map(child => child.text).join('')}
+            </p>
+          );
+        }
+        return null;
+      });
+    }
+
+    // Fallback: render as string
+    return <p>{String(content)}</p>;
+  };
+
   if (loading) {
     return (
       <div className="blog-post">
@@ -97,9 +126,7 @@ export default function BlogPost() {
           </div>
 
           <div className="post-body">
-            {post.content && post.content.split('\n\n').map((paragraph, idx) => (
-              <p key={idx}>{paragraph}</p>
-            ))}
+            {renderContent(post.content)}
           </div>
         </div>
       </article>
