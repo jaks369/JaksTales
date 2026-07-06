@@ -1,17 +1,43 @@
 import React, { useState } from 'react';
+import { subscribeToNewsletter } from '../lib/supabase.jsx';
 import './Newsletter.css';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would send to a backend
-    console.log('Newsletter signup:', email);
-    setSubmitted(true);
-    setEmail('');
-    setTimeout(() => setSubmitted(false), 5000);
+    setError(null);
+    setSuccess(null);
+
+    if (!email) {
+      setError('Please enter your email');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data, error: subscribeError } = await subscribeToNewsletter(email);
+
+      if (subscribeError) {
+        if (subscribeError.code === '23505') {
+          setError('This email is already subscribed');
+        } else {
+          throw subscribeError;
+        }
+      } else {
+        setSuccess('Successfully subscribed! Check your email for confirmation.');
+        setEmail('');
+      }
+    } catch (err) {
+      console.error('Error subscribing:', err);
+      setError(err.message || 'Failed to subscribe. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,13 +57,10 @@ export default function Newsletter() {
               Receive curated articles on geopolitics, hidden history, philosophy, psychology, technology, AI, crypto, and more. No spam, just thoughtful content.
             </p>
 
-            <form className="newsletter-form" onSubmit={handleSubmit}>
-              {submitted && (
-                <div className="success-message">
-                  Thank you for subscribing! Check your email to confirm.
-                </div>
-              )}
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
 
+            <form className="newsletter-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <input
                   type="email"
@@ -48,7 +71,9 @@ export default function Newsletter() {
                 />
               </div>
 
-              <button type="submit" className="submit-btn">Subscribe</button>
+              <button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? 'Subscribing...' : 'Subscribe'}
+              </button>
             </form>
 
             <p className="privacy-note">

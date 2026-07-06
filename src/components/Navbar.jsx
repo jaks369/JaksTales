@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { signOut } from '../lib/supabase.jsx';
 import './Navbar.css';
 
 export default function Navbar() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    setIsOpen(false);
+    navigate('/');
+  };
 
   return (
     <nav className="navbar">
@@ -23,6 +33,14 @@ export default function Navbar() {
           <li><Link to="/categories" onClick={() => setIsOpen(false)}>Categories</Link></li>
           <li><Link to="/about" onClick={() => setIsOpen(false)}>About</Link></li>
           <li><Link to="/contact" onClick={() => setIsOpen(false)}>Contact</Link></li>
+          {user ? (
+            <>
+              <li><Link to="/profile" onClick={() => setIsOpen(false)} className="profile-link">{user.email}</Link></li>
+              <li><button onClick={handleLogout} className="logout-btn">Logout</button></li>
+            </>
+          ) : (
+            <li><Link to="/auth" onClick={() => setIsOpen(false)} className="auth-link">Login</Link></li>
+          )}
         </ul>
       </div>
     </nav>

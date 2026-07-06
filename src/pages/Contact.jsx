@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
+import { submitContactForm } from '../lib/supabase.jsx';
 import './Contact.css';
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would send to a backend
-    console.log('Contact form submitted:', formData);
-    setSubmitted(true);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    setTimeout(() => setSubmitted(false), 5000);
+    setError(null);
+    setSuccess(null);
+
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data, error: submitError } = await submitContactForm(
+        formData.name,
+        formData.email,
+        formData.subject,
+        formData.message
+      );
+
+      if (submitError) throw submitError;
+
+      setSuccess('Thank you for your message! We\'ll get back to you soon.');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (err) {
+      console.error('Error submitting contact form:', err);
+      setError(err.message || 'Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,11 +51,8 @@ export default function Contact() {
       <div className="container">
         <div className="contact-content">
           <form className="contact-form" onSubmit={handleSubmit}>
-            {submitted && (
-              <div className="success-message">
-                Thank you for your message! We'll get back to you soon.
-              </div>
-            )}
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
 
             <div className="form-group">
               <label htmlFor="name">Name *</label>
@@ -76,7 +98,9 @@ export default function Contact() {
               ></textarea>
             </div>
 
-            <button type="submit" className="submit-btn">Send Message</button>
+            <button type="submit" className="submit-btn" disabled={loading}>
+              {loading ? 'Sending...' : 'Send Message'}
+            </button>
           </form>
 
           <div className="contact-info">

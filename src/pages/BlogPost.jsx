@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchPostBySlug, fetchPosts } from '../lib/sanity.jsx';
+import { getComments, addComment } from '../lib/supabase.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import PostCard from '../components/PostCard.jsx';
 import './BlogPost.css';
 
 export default function BlogPost() {
   const { slug } = useParams();
+  const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [relatedPosts, setRelatedPosts] = useState([]);
   const [comments, setComments] = useState([]);
   const [formData, setFormData] = useState({ name: '', email: '', comment: '' });
   const [loading, setLoading] = useState(true);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(null);
 
   useEffect(() => {
     const loadPost = async () => {
@@ -34,6 +41,9 @@ export default function BlogPost() {
           .filter(p => p.category === postData.category && p.id !== postData.id)
           .slice(0, 3);
         setRelatedPosts(related);
+
+        // Load comments from Supabase
+        loadComments(postData.slug);
       } catch (err) {
         console.error('Error loading post:', err);
         setError('Failed to load post. Please try again later.');
@@ -45,11 +55,51 @@ export default function BlogPost() {
     loadPost();
   }, [slug]);
 
-  const handleSubmitComment = (e) => {
+  const loadComments = async (postSlug) => {
+    try {
+      setCommentsLoading(true);
+      const { data, error: fetchError } = await getComments(postSlug);
+      if (fetchError) throw fetchError;
+      setComments(data || []);
+    } catch (err) {
+      console.error('Error loading comments:', err);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const handleSubmitComment = async (e) => {
     e.preventDefault();
-    if (formData.name && formData.email && formData.comment) {
-      setComments([...comments, { ...formData, date: new Date().toLocaleDateString() }]);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    if (!formData.name || !formData.email || !formData.comment) {
+      setSubmitError('Please fill in all fields');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const { data, error: submitErr } = await addComment(
+        post.slug,
+        formData.name,
+        formData.email,
+        formData.comment,
+        user?.id || null
+      );
+
+      if (submitErr) throw submitErr;
+
+      setSubmitSuccess('Comment submitted! It will appear after moderation.');
       setFormData({ name: '', email: '', comment: '' });
+
+      // Reload comments
+      loadComments(post.slug);
+    } catch (err) {
+      console.error('Error submitting comment:', err);
+      setSubmitError(err.message || 'Failed to submit comment');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -134,8 +184,11 @@ export default function BlogPost() {
       {/* Comments Section */}
       <section className="comments-section">
         <div className="container">
-          <h2>Comments</h2>
+          <h2>Comments ({comments.length})</h2>
           
+          {submitError && <div className="error-message">{submitError}</div>}
+          {submitSuccess && <div className="success-message">{submitSuccess}</div>}
+
           <form className="comment-form" onSubmit={handleSubmitComment}>
             <div className="form-group">
               <input
@@ -164,20 +217,30 @@ export default function BlogPost() {
                 required
               ></textarea>
             </div>
-            <button type="submit" className="submit-btn">Post Comment</button>
+            <button type="submit" className="submit-btn" disabled={submitting}>
+              {submitting ? 'Posting...' : 'Post Comment'}
+            </button>
           </form>
 
           <div className="comments-list">
-            {comments.length === 0 ? (
+            {commentsLoading ? (
+              <p className="loading">Loading comments...</p>
+            ) : comments.length === 0 ? (
               <p className="no-comments">No comments yet. Be the first to comment!</p>
             ) : (
-              comments.map((comment, idx) => (
-                <div key={idx} className="comment">
+              comments.map((comment) => (
+                <div key={comment.id} className="comment">
                   <div className="comment-header">
                     <strong>{comment.name}</strong>
-                    <span className="comment-date">{comment.date}</span>
+                    <span className="comment-date">
+                      {new Date(comment.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
                   </div>
-                  <p>{comment.comment}</p>
+                  <p>{comment.content}</p>
                 </div>
               ))
             )}
